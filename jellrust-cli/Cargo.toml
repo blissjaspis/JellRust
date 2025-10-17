@@ -1,0 +1,22 @@
+[package]
+name = "jellrust-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "jellrust"
+path = "src/main.rs"
+
+[dependencies]
+jellrust-core = { path = "../jellrust-core" }
+jellrust-server = { path = "../jellrust-server" }
+
+clap.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+open = "5.3"
+

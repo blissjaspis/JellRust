@@ -1,0 +1,27 @@
+[package]
+name = "jellrust-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+jellrust-markdown = { path = "../jellrust-markdown" }
+jellrust-template = { path = "../jellrust-template" }
+
+walkdir.workspace = true
+notify.workspace = true
+glob.workspace = true
+serde.workspace = true
+serde_yaml.workspace = true
+toml.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+regex.workspace = true
+rayon.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+
