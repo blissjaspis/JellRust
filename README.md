@@ -221,7 +221,7 @@ This project covers essential Rust concepts:
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) first.
+Contributions are welcome! Please read our [Contributing Guide](docs/CONTRIBUTING.md) first.
 
 ## License
 

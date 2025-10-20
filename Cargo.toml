@@ -6,14 +6,14 @@ members = [
     "jellrust-template",
     "jellrust-server",
 ]
-resolver = "2"
+resolver = "3"
 
 [workspace.package]
 version = "0.1.0"
-edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
+edition = "2024"
+authors = ["Bliss Jaspis <blissl@jaspis.me>"]
 license = "MIT"
-repository = "https://github.com/yourusername/jellrust"
+repository = "https://github.com/blissjaspis/jellrust"
 
 [workspace.dependencies]
 # CLI and utilities
