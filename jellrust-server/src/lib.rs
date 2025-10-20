@@ -18,6 +18,7 @@ use tower_http::services::ServeDir;
 pub struct DevServer {
     source: PathBuf,
     destination: PathBuf,
+    #[allow(dead_code)]
     config: Config,
     port: u16,
     host: String,
@@ -83,7 +84,6 @@ impl DevServer {
         &self,
         reload_flag: Arc<RwLock<bool>>,
     ) -> Result<notify::RecommendedWatcher> {
-        use notify::Config as NotifyConfig;
         
         let source = self.source.clone();
         

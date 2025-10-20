@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
-use jellrust_core::config::Config;
-use jellrust_core::content::{Page, Post, Site};
+use jellrust_types::{Config, Page, Post, Site};
 use liquid::model::{Object, Value};
 use liquid::ParserBuilder;
 use std::fs;
@@ -114,7 +113,7 @@ impl TemplateEngine {
         // Check if this layout has a parent layout
         if let Some(parent_layout) = self.extract_parent_layout(&layout_content) {
             let mut new_globals = globals.clone();
-            new_globals.insert("content".into(), Value::scalar(output));
+            new_globals.insert("content".into(), Value::scalar(output.clone()));
             return self.render_with_layout(&output, &parent_layout, &new_globals);
         }
         

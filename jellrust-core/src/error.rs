@@ -32,3 +32,15 @@ impl From<serde_yaml::Error> for Error {
     }
 }
 
+impl From<anyhow::Error> for Error {
+    fn from(err: anyhow::Error) -> Self {
+        Error::Other(err.to_string())
+    }
+}
+
+impl From<walkdir::Error> for Error {
+    fn from(err: walkdir::Error) -> Self {
+        Error::Io(std::io::Error::new(std::io::ErrorKind::Other, err.to_string()))
+    }
+}
+

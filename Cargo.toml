@@ -3,6 +3,7 @@ members = [
     "jellrust-cli",
     "jellrust-core",
     "jellrust-markdown",
+    "jellrust-types",
     "jellrust-template",
     "jellrust-server",
 ]

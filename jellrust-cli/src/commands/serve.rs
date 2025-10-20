@@ -1,5 +1,5 @@
 use anyhow::Result;
-use jellrust_core::{config::Config, site::SiteBuilder};
+use jellrust_core::{config::{Config, ConfigExt}, site::SiteBuilder};
 use jellrust_server::DevServer;
 use std::path::PathBuf;
 

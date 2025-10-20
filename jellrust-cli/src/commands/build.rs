@@ -1,5 +1,5 @@
 use anyhow::Result;
-use jellrust_core::{config::Config, site::SiteBuilder};
+use jellrust_core::{config::{Config, ConfigExt}, site::SiteBuilder};
 use std::path::PathBuf;
 
 pub async fn execute(
@@ -35,7 +35,7 @@ async fn watch_and_rebuild(
     destination: PathBuf,
     drafts: bool,
 ) -> Result<()> {
-    use notify::{RecursiveMode, Watcher, Config as NotifyConfig};
+    use notify::{RecursiveMode, Watcher};
     use tokio::sync::mpsc;
     
     let (tx, mut rx) = mpsc::channel(100);

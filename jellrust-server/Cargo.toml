@@ -6,6 +6,7 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
+jellrust-core = { path = "../jellrust-core" }
 axum.workspace = true
 tokio.workspace = true
 tower.workspace = true

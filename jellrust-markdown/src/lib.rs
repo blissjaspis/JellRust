@@ -1,13 +1,52 @@
 use anyhow::{Context, Result};
-use jellrust_core::content::FrontMatter;
-use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
-use syntect::highlighting::{Theme, ThemeSet};
+use pulldown_cmark::{html, CodeBlockKind, CowStr, Event, Options, Parser, Tag, TagEnd};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use syntect::highlighting::ThemeSet;
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 use once_cell::sync::Lazy;
 
 static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
 static THEME_SET: Lazy<ThemeSet> = Lazy::new(ThemeSet::load_defaults);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct FrontMatter {
+    /// Page/post title
+    pub title: Option<String>,
+    
+    /// Layout to use
+    pub layout: Option<String>,
+    
+    /// Publication date
+    pub date: Option<String>,
+    
+    /// Author name
+    pub author: Option<String>,
+    
+    /// Categories
+    #[serde(default)]
+    pub categories: Vec<String>,
+    
+    /// Tags
+    #[serde(default)]
+    pub tags: Vec<String>,
+    
+    /// Permalink override
+    pub permalink: Option<String>,
+    
+    /// Whether this is published
+    #[serde(default = "default_true")]
+    pub published: bool,
+    
+    /// Custom front matter fields
+    #[serde(flatten)]
+    pub custom: HashMap<String, serde_yaml::Value>,
+}
+
+fn default_true() -> bool {
+    true
+}
 
 pub struct MarkdownProcessor {
     options: Options,
@@ -26,7 +65,7 @@ impl MarkdownProcessor {
     }
     
     /// Parse front matter and content from a markdown file
-    pub fn parse_front_matter(&self, content: &str) -> Result<(FrontMatter, &str)> {
+    pub fn parse_front_matter<'a>(&self, content: &'a str) -> Result<(FrontMatter, &'a str)> {
         let trimmed = content.trim();
         
         // Check if content starts with ---
@@ -87,11 +126,12 @@ impl MarkdownProcessor {
                         
                         // Highlight the code
                         if let Some(highlighted) = self.highlight_code(&code_block_content, &code_block_lang) {
-                            events.push(Event::Html(highlighted.into()));
+                            events.push(Event::Html(CowStr::Boxed(highlighted.into_boxed_str())));
                         } else {
-                            // Fallback to plain code block
-                            events.push(Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(code_block_lang.as_str().into()))));
-                            events.push(Event::Text(code_block_content.clone().into()));
+                            // Fallback to plain code block - use owned string
+                            let lang_owned = CowStr::Boxed(code_block_lang.clone().into_boxed_str());
+                            events.push(Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(lang_owned))));
+                            events.push(Event::Text(CowStr::Boxed(code_block_content.clone().into_boxed_str())));
                             events.push(Event::End(TagEnd::CodeBlock));
                         }
                     } else {
@@ -120,7 +160,7 @@ impl MarkdownProcessor {
     fn highlight_code(&self, code: &str, lang: &str) -> Option<String> {
         let syntax = SYNTAX_SET
             .find_syntax_by_token(lang)
-            .or_else(|| SYNTAX_SET.find_syntax_plain_text())?;
+            .or_else(|| Some(SYNTAX_SET.find_syntax_plain_text()))?;
         
         let theme = &THEME_SET.themes["base16-ocean.dark"];
         

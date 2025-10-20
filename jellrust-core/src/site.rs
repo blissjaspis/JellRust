@@ -1,6 +1,6 @@
 use crate::config::Config;
 use crate::content::{Page, Post, Site};
-use crate::error::{Error, Result};
+use crate::error::Result;
 use jellrust_markdown::MarkdownProcessor;
 use jellrust_template::TemplateEngine;
 use std::fs;
@@ -241,7 +241,7 @@ impl SiteBuilder {
             .strip_prefix(&self.source)
             .unwrap_or(&page.path);
         
-        let mut url = rel_path.with_extension("html");
+        let url = rel_path.with_extension("html");
         
         // Convert to string and make it web-friendly
         url.to_string_lossy()

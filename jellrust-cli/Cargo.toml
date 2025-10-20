@@ -16,6 +16,7 @@ jellrust-server = { path = "../jellrust-server" }
 clap.workspace = true
 anyhow.workspace = true
 tokio.workspace = true
+notify.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 open = "5.3"

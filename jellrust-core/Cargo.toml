@@ -7,6 +7,7 @@ license.workspace = true
 
 [dependencies]
 jellrust-markdown = { path = "../jellrust-markdown" }
+jellrust-types = { path = "../jellrust-types" }
 jellrust-template = { path = "../jellrust-template" }
 
 walkdir.workspace = true
