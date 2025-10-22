@@ -2,9 +2,25 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::Arc;
+use tokio::sync::{mpsc, RwLock};
 
 // Re-export FrontMatter from jellrust-markdown
 pub use jellrust_markdown::FrontMatter;
+
+// ============================================================================
+// Server Types
+// ============================================================================
+
+/// Shared flag for triggering browser reload in development server
+pub type ReloadFlag = Arc<RwLock<bool>>;
+
+/// Channel for communicating file change events
+pub type FileChangeChannel = mpsc::UnboundedSender<()>;
+
+// ============================================================================
+// Content Types
+// ============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Page {

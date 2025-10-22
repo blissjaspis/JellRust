@@ -24,7 +24,7 @@ pub async fn execute(
     println!("✅ Initial build complete!");
     
     // Start the dev server
-    let server = DevServer::new(source, destination, config, port, host.clone());
+    let server = DevServer::new(source, destination, config, port, host.clone(), drafts);
     
     let url = format!("http://{}:{}", host, port);
     println!("\n🚀 Server running at {}", url);
