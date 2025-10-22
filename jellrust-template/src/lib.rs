@@ -52,6 +52,30 @@ impl TemplateEngine {
         self.render_with_layout(&post.html, layout_name, &globals)
     }
     
+    /// Render Liquid templates in page content (before Markdown processing)
+    pub fn render_page_content(
+        &self,
+        content: &str,
+        page: &Page,
+        site: &Site,
+        config: &Config,
+    ) -> Result<String> {
+        let mut globals = Object::new();
+
+        // Add site variables
+        globals.insert("site".into(), self.site_to_value(site, config));
+
+        // Add page variables
+        globals.insert("page".into(), self.page_to_value(page));
+
+        // Process Liquid templates in the content
+        let template = self.parser.parse(content)
+            .with_context(|| format!("Failed to parse Liquid templates in page content"))?;
+
+        template.render(&globals)
+            .with_context(|| format!("Failed to render Liquid templates in page content"))
+    }
+
     /// Render a page with its layout
     pub fn render_page(
         &self,
@@ -102,16 +126,22 @@ impl TemplateEngine {
         
         let layout_content = fs::read_to_string(&layout_path)
             .with_context(|| format!("Failed to read layout: {}", layout_path.display()))?;
-        
+
+        // Extract parent layout from front matter
+        let parent_layout = self.extract_parent_layout(&layout_content);
+
+        // Extract template content (strip front matter)
+        let template_content = self.extract_template_content(&layout_content);
+
         // Parse and render the layout
-        let template = self.parser.parse(&layout_content)
+        let template = self.parser.parse(template_content)
             .with_context(|| format!("Failed to parse layout: {}", layout_name))?;
-        
+
         let output = template.render(globals)
             .with_context(|| format!("Failed to render layout: {}", layout_name))?;
-        
+
         // Check if this layout has a parent layout
-        if let Some(parent_layout) = self.extract_parent_layout(&layout_content) {
+        if let Some(parent_layout) = parent_layout {
             let mut new_globals = globals.clone();
             new_globals.insert("content".into(), Value::scalar(output.clone()));
             return self.render_with_layout(&output, &parent_layout, &new_globals);
@@ -125,7 +155,7 @@ impl TemplateEngine {
         if !layout_content.trim().starts_with("---") {
             return None;
         }
-        
+
         let rest = &layout_content.trim()[3..];
         if let Some(end_pos) = rest.find("\n---") {
             let yaml_content = &rest[..end_pos];
@@ -135,8 +165,28 @@ impl TemplateEngine {
                 }
             }
         }
-        
+
         None
+    }
+
+    /// Extract template content from layout by stripping front matter
+    fn extract_template_content<'a>(&self, layout_content: &'a str) -> &'a str {
+        let trimmed = layout_content.trim();
+
+        // Check if content starts with ---
+        if !trimmed.starts_with("---") {
+            return layout_content;
+        }
+
+        // Find the ending ---
+        let rest = &trimmed[3..];
+        if let Some(end_pos) = rest.find("\n---") {
+            // Return everything after the front matter
+            &rest[end_pos + 4..].trim_start()
+        } else {
+            // No closing --- found, return original content
+            layout_content
+        }
     }
     
     /// Convert Site to Liquid Value

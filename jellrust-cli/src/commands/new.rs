@@ -27,7 +27,6 @@ pub fn execute(name: String, path: Option<PathBuf>) -> Result<()> {
 fn create_directory_structure(base: &PathBuf) -> Result<()> {
     let dirs = [
         "_layouts",
-        "_includes",
         "_posts",
         "_drafts",
         "_data",
@@ -57,7 +56,7 @@ baseurl: ""
 
 # Build settings
 markdown: pulldown-cmark
-permalink: /:year/:month/:day/:title/
+permalink: /:year/:month/:day/:title.html
 
 # Pagination
 paginate: 10
@@ -87,9 +86,11 @@ This is your new JellRust site. Edit `index.md` to customize this page.
 
 ## Recent Posts
 
-{% for post in site.posts limit:5 %}
-- [{{ post.title }}]({{ post.url }}) - {{ post.date | date: "%B %d, %Y" }}
+<ul>
+{% for post in site.posts %}
+<li><a href="{{ post.url }}">{{ post.title }}</a> - {{ post.date }}</li>
 {% endfor %}
+</ul>
 "#;
     fs::write(base.join("index.md"), index)?;
     
@@ -113,16 +114,30 @@ This is the about page. Edit `about.md` to tell people about yourself!
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title }} | {{ site.title }}</title>
-    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-    {% include header.html %}
-    
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title">
+                <a href="/">{{ site.title }}</a>
+            </h1>
+            <nav class="site-nav">
+                <a href="/">Home</a>
+                <a href="/about/">About</a>
+            </nav>
+        </div>
+    </header>
+
     <main class="container">
         {{ content }}
     </main>
-    
-    {% include footer.html %}
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; {{ site.title }}. Built with JellRust.</p>
+        </div>
+    </footer>
 </body>
 </html>
 "#;
@@ -137,22 +152,20 @@ layout: default
     <header class="post-header">
         <h1 class="post-title">{{ page.title }}</h1>
         <p class="post-meta">
-            <time datetime="{{ page.date | date_to_xmlschema }}">
-                {{ page.date | date: "%B %d, %Y" }}
-            </time>
+            <time>{{ page.date | date: "%B %d, %Y" }}</time>
             {% if page.author %}
             by {{ page.author }}
             {% endif %}
         </p>
     </header>
-    
+
     <div class="post-content">
         {{ content }}
     </div>
-    
+
     {% if page.tags %}
     <div class="post-tags">
-        Tags: 
+        Tags:
         {% for tag in page.tags %}
         <span class="tag">{{ tag }}</span>
         {% endfor %}
@@ -161,30 +174,6 @@ layout: default
 </article>
 "#;
     fs::write(base.join("_layouts/post.html"), post_layout)?;
-    
-    // _includes/header.html
-    let header = r#"<header class="site-header">
-    <div class="container">
-        <h1 class="site-title">
-            <a href="{{ '/' | relative_url }}">{{ site.title }}</a>
-        </h1>
-        <nav class="site-nav">
-            <a href="{{ '/' | relative_url }}">Home</a>
-            <a href="{{ '/about/' | relative_url }}">About</a>
-        </nav>
-    </div>
-</header>
-"#;
-    fs::write(base.join("_includes/header.html"), header)?;
-    
-    // _includes/footer.html
-    let footer = r#"<footer class="site-footer">
-    <div class="container">
-        <p>&copy; {{ 'now' | date: '%Y' }} {{ site.title }}. Built with JellRust.</p>
-    </div>
-</footer>
-"#;
-    fs::write(base.join("_includes/footer.html"), footer)?;
     
     // Sample post
     let post = r#"---

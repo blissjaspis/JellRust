@@ -77,7 +77,7 @@ impl SiteBuilder {
         tracing::info!("Rendering content...");
         self.render_posts(&site).await?;
         self.render_pages(&site).await?;
-        
+
         tracing::info!("Build complete!");
         Ok(())
     }
@@ -89,7 +89,7 @@ impl SiteBuilder {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
-            
+
             if !path.is_file() {
                 continue;
             }
@@ -175,10 +175,10 @@ impl SiteBuilder {
             let mut page = Page::new(path.to_path_buf());
             page.front_matter = front_matter;
             page.content = body.to_string();
-            
+
             // Generate URL
             page.url = self.generate_page_url(&page);
-            
+
             // Render content
             if matches!(ext, Some("md") | Some("markdown")) {
                 page.html = self.markdown_processor.render(&page.content)?;
@@ -233,6 +233,10 @@ impl SiteBuilder {
     /// Generate URL for a page
     fn generate_page_url(&self, page: &Page) -> String {
         if let Some(permalink) = &page.front_matter.permalink {
+            // If permalink ends with '/', treat it as a directory and append index.html
+            if permalink.ends_with('/') {
+                return format!("{}index.html", permalink);
+            }
             return permalink.clone();
         }
         
@@ -299,19 +303,19 @@ impl SiteBuilder {
     async fn render_posts(&mut self, site: &Site) -> Result<()> {
         for post in &site.posts {
             let output_path = self.destination.join(post.url.trim_start_matches('/'));
-            
+
             // Ensure parent directory exists
             if let Some(parent) = output_path.parent() {
                 fs::create_dir_all(parent)?;
             }
-            
+
             // Render with template
             let html = self.template_engine.render_post(post, site, &self.config)?;
-            
+
             fs::write(&output_path, html)?;
             tracing::debug!("Rendered post: {}", output_path.display());
         }
-        
+
         Ok(())
     }
     
@@ -319,19 +323,31 @@ impl SiteBuilder {
     async fn render_pages(&mut self, site: &Site) -> Result<()> {
         for page in &site.pages {
             let output_path = self.destination.join(page.url.trim_start_matches('/'));
-            
+
             // Ensure parent directory exists
             if let Some(parent) = output_path.parent() {
                 fs::create_dir_all(parent)?;
             }
-            
+
+            // Check if the page content contains Liquid templates
+            let processed_content = if page.html.contains("{{") || page.html.contains("{%") {
+                // Re-process through Liquid templating with full site data
+                self.template_engine.render_page_content(&page.html, page, site, &self.config)?
+            } else {
+                page.html.clone()
+            };
+
+            // Create a temporary page with the processed content for layout rendering
+            let mut processed_page = page.clone();
+            processed_page.html = processed_content;
+
             // Render with template
-            let html = self.template_engine.render_page(page, site, &self.config)?;
-            
+            let html = self.template_engine.render_page(&processed_page, site, &self.config)?;
+
             fs::write(&output_path, html)?;
             tracing::debug!("Rendered page: {}", output_path.display());
         }
-        
+
         Ok(())
     }
 }
